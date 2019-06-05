@@ -13,4 +13,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/francescoalemanno/AdaMeanShift.jl.git",
+    target="build"
 )
