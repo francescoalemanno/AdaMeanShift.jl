@@ -1,7 +1,7 @@
 module AdaMeanShift
 
     using Statistics, LinearAlgebra, SpecialFunctions, StaticArrays
-    export genms, genintensity, runms!
+    export genms, genintensity, meanshift!
     @inline function Kern(x::AbstractVector{fT},h::AbstractVector{fT}) where fT
         max(zero(fT),one(fT) - norm(@inbounds x ./ max.(h,one(fT)))^2)
     end
@@ -87,10 +87,11 @@ module AdaMeanShift
     end
 
     """
-    runms!(M, P, h, w, hmax, isotropy=0.5, maxit=Inf, rtol=√ϵ, smoothing=1)
+    meanshift!(M, P, h, w, hmax; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
 
     Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
 
+    Arguments
     ================================
 
         `M` is the density tensor over which particles evolve.
@@ -98,6 +99,10 @@ module AdaMeanShift
         `h` is a julia vector of StaticVectors describing all standard deviations.
         `w` is a julia vector which will contain the new modes intensity estimates.
         `hmax` is the maximum norm that standard deviations "h" can have.
+
+    Keyword Arguments
+    ================================
+
         `isotropy` is a scalar [0,1] set to 1 for isotropic kernel,
                            < 1 anisotropy along coordinate axis is allowed.
         `maxit` is a integer for the maximum number of meanshift iterations.
@@ -105,8 +110,8 @@ module AdaMeanShift
         `smoothing` is a regularization term for density tensors with noise.
 
     """
-    function runms!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T},
-        hmax::T,isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T)),smoothing::T=one(T)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    function meanshift!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T},
+        hmax::T; isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T)),smoothing::T=one(T)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         a=@elapsed Threads.@threads for i in eachindex(P)
             cnt=0
             delta=one(T)
