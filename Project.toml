@@ -1,0 +1,13 @@
+name = "AdaMeanShift"
+uuid = "138ecb3a-8772-11e9-3015-1f29f0200629"
+authors = ["Francesco Alemanno"]
+version = "0.1.0"
+
+[compat]
+julia = "1.1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
