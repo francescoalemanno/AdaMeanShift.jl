@@ -19,7 +19,9 @@ module AdaMeanShift
         @inbounds clampdim(M,round(Int,p[i]-h[i]-1),i):clampdim(M,round(Int,p[i]+h[i]+1),i)
     end
     function genms(M,p,h,isotropy)
-        genms(M,SVector(p),SVector(h),isotropy)
+        N=length(p)
+        @assert N==length(h)
+        genms(M,SVector{length(p)}(p),SVector{length(h)}(h),isotropy)
     end
     @generated function genms(M::Mty,p::K,h::K,isotropy) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         D=(8//N^2 + 6//N +1)
@@ -61,7 +63,9 @@ module AdaMeanShift
         end
     end
     function genintensity(M,p,h)
-        genintensity(M,SVector(p),SVector(h))
+        N=length(p)
+        @assert N==length(h)
+        genintensity(M,SVector{length(p)}(p),SVector{length(h)}(h))
     end
     @generated function genintensity(M::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         Z=zero(T)
@@ -80,6 +84,7 @@ module AdaMeanShift
             end
         end
     end
+    
     """
     runms!(M,P,h,w,hmax,isotropy,maxit,rtol)
     ---- Performs MeanShift on a swarm of particles over a given density matrix
