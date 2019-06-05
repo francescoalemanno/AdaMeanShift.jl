@@ -87,20 +87,21 @@ module AdaMeanShift
     end
 
     """
-    runms!(M,P,h,w,hmax,isotropy,maxit,rtol)
-    ---- Performs MeanShift on a swarm of particles over a given density matrix
-         locating all modes and their scale.
+    runms!(M, P, h, w, hmax, isotropy=0.5, maxit=Inf, rtol=√ϵ)
 
 
-        * M is the density matrix over which particles evolve
-        * P is a julia vector of StaticVectors describing all positions
-        * h is a julia vector of StaticVectors describing all standard deviations
-        * w is a julia vector which will contain the new modes intensity estimates
-        * hmax is the maximum norm that standard deviations "h" can have
-        * isotropy=0.5 is a scalar [0,1] set to 1 for isotropic kernel,
-                           < 1 anisotropy along coordinate axis is allowed
-        * maxit=Inf is a integer for the maximum number of meanshift iterations
-        * rtol=√ϵ is the absolute tolerance to declare a particle as converged
+    Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
+    ================================
+
+        `M` is the density matrix over which particles evolve.
+        `P` is a julia vector of StaticVectors describing all positions.
+        `h` is a julia vector of StaticVectors describing all standard deviations.
+        `w` is a julia vector which will contain the new modes intensity estimates.
+        `hmax` is the maximum norm that standard deviations "h" can have.
+        `isotropy` is a scalar [0,1] set to 1 for isotropic kernel,
+                           < 1 anisotropy along coordinate axis is allowed.
+        `maxit` is a integer for the maximum number of meanshift iterations.
+        `rtol` is the absolute tolerance to declare a particle as converged.
     """
     function runms!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T},
         hmax::T,isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T))) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
