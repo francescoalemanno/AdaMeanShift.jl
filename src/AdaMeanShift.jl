@@ -18,12 +18,12 @@ module AdaMeanShift
         #round(Int,p[i]-h[i]-1):round(Int,p[i]+h[i]+1)
         @inbounds clampdim(M,round(Int,p[i]-h[i]-1),i):clampdim(M,round(Int,p[i]+h[i]+1),i)
     end
-    function genms(M,p,h,args...)
+    function genms(M,p,h,isotropy,smoothing)
         N=length(p)
         @assert N==length(h)
-        genms(M,SVector{length(p)}(p),SVector{length(h)}(h),args...)
+        genms(M,SVector{length(p)}(p),SVector{length(h)}(h),isotropy,smoothing)
     end
-    @generated function genms(M::Mty,p::K,h::K,isotropy,smoothing=T(1)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    @generated function genms(M::Mty,p::K,h::K,isotropy,smoothing) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         D=(8//N^2 + 6//N +1)
         scale= sqrt(N * ((2//N + 1)*(4//N + 1)*(6//N + 1))//D)
         invvolume=gamma(N/2+1)*pi^(-N/2)
@@ -87,13 +87,13 @@ module AdaMeanShift
     end
 
     """
-    runms!(M, P, h, w, hmax, isotropy=0.5, maxit=Inf, rtol=√ϵ)
-
+    runms!(M, P, h, w, hmax, isotropy=0.5, maxit=Inf, rtol=√ϵ, smoothing=1)
 
     Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
+
     ================================
 
-        `M` is the density matrix over which particles evolve.
+        `M` is the density tensor over which particles evolve.
         `P` is a julia vector of StaticVectors describing all positions.
         `h` is a julia vector of StaticVectors describing all standard deviations.
         `w` is a julia vector which will contain the new modes intensity estimates.
@@ -102,9 +102,11 @@ module AdaMeanShift
                            < 1 anisotropy along coordinate axis is allowed.
         `maxit` is a integer for the maximum number of meanshift iterations.
         `rtol` is the absolute tolerance to declare a particle as converged.
+        `smoothing` is a regularization term for density tensors with noise.
+
     """
     function runms!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T},
-        hmax::T,isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T))) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+        hmax::T,isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T)),smoothing::T=one(T)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         a=@elapsed Threads.@threads for i in eachindex(P)
             cnt=0
             delta=one(T)
