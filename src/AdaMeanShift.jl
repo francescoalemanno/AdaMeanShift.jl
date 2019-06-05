@@ -18,12 +18,12 @@ module AdaMeanShift
         #round(Int,p[i]-h[i]-1):round(Int,p[i]+h[i]+1)
         @inbounds clampdim(M,round(Int,p[i]-h[i]-1),i):clampdim(M,round(Int,p[i]+h[i]+1),i)
     end
-    function genms(M,p,h,isotropy)
+    function genms(M,p,h,args...)
         N=length(p)
         @assert N==length(h)
-        genms(M,SVector{length(p)}(p),SVector{length(h)}(h),isotropy)
+        genms(M,SVector{length(p)}(p),SVector{length(h)}(h),args...)
     end
-    @generated function genms(M::Mty,p::K,h::K,isotropy) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    @generated function genms(M::Mty,p::K,h::K,isotropy,smoothing=T(1)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         D=(8//N^2 + 6//N +1)
         scale= sqrt(N * ((2//N + 1)*(4//N + 1)*(6//N + 1))//D)
         invvolume=gamma(N/2+1)*pi^(-N/2)
@@ -35,7 +35,7 @@ module AdaMeanShift
                 c=p.*$Z
                 xsq=p.*$Z
                 NW=IW=KW=W=$Z
-                ls=$invvolume*norm(h)^(-$N)
+                ls=$invvolume*inv(prod(max.(h,$O)))*smoothing
 
                 Base.Cartesian.@nexprs $N i -> R_i = makerange(M,p,h,i)
                 Base.Cartesian.@nloops $N i i->R_i begin
@@ -67,6 +67,7 @@ module AdaMeanShift
         @assert N==length(h)
         genintensity(M,SVector{length(p)}(p),SVector{length(h)}(h))
     end
+
     @generated function genintensity(M::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         Z=zero(T)
         O=one(T)
@@ -84,7 +85,7 @@ module AdaMeanShift
             end
         end
     end
-    
+
     """
     runms!(M,P,h,w,hmax,isotropy,maxit,rtol)
     ---- Performs MeanShift on a swarm of particles over a given density matrix
