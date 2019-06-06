@@ -30,8 +30,10 @@ Performs a single iteration of meanshift over a single particle
 """
     function atomic_meanshift(M,p,h,isotropy,smoothing)
         N=length(p)
+        T=eltype(p)
         @assert N==length(h)
-        atomic_meanshift(M,SVector{length(p)}(p),SVector{length(h)}(h),isotropy,smoothing)
+        @assert T==eltype(h)
+        atomic_meanshift(M,SVector{length(p)}(p),SVector{length(h)}(h),T(isotropy),T(smoothing))
     end
     @generated function atomic_meanshift(M::Mty,p::K,h::K,isotropy::T,smoothing::T) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         D=(8//N^2 + 6//N +1)
@@ -93,7 +95,9 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
 """
     function atomic_intensity(M,p,h)
         N=length(p)
+        T=eltype(p)
         @assert N==length(h)
+        @assert T==eltype(h)
         atomic_intensity(M,SVector{length(p)}(p),SVector{length(h)}(h))
     end
 
