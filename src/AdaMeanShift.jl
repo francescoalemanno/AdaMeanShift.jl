@@ -79,18 +79,18 @@ Performs a single iteration of meanshift over a single particle
         end
     end
 
-    """
-            atomic_intensity(M::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+"""
+        atomic_intensity(M::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
 
-    Calculates the integrated intensity on the density tensor `M` over a ellipsoidal region caracterized by `p` region center, `h` semiaxis
+Calculates the integrated intensity on the density tensor `M` over a ellipsoidal region caracterized by `p` region center, `h` semiaxis
 
-    # Arguments
-    - `M` density tensor
-    - `p` region center
-    - `h` semiaxis lengths
+# Arguments
+- `M` density tensor
+- `p` region center
+- `h` semiaxis lengths
 
-    Note that both `p`,`h` should be of type Vector or StaticVector with the same length.
-    """
+Note that both `p`,`h` should be of type Vector or StaticVector with the same length.
+"""
     function atomic_intensity(M,p,h)
         N=length(p)
         @assert N==length(h)
@@ -117,9 +117,9 @@ Performs a single iteration of meanshift over a single particle
 
 
 """
-    meanshift!(M, P, h, w, hmax; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
+        meanshift!(M, P, h, w, hmax; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
 
-    Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
+Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
 
 # Arguments
 - `M` is the density tensor over which particles evolve.
