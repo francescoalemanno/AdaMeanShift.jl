@@ -1,4 +1,4 @@
-# AdaMeanShift.jl
+# [AdaMeanShift.jl](https://github.com/francescoalemanno/AdaMeanShift.jl)
 Julia package to perform multidimensional and scale-adaptive meanshift over density tensors (Images, Histograms, ...)
 
 ```@index
