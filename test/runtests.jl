@@ -20,7 +20,7 @@ using Test
     hv=[@SVector([50.0,50.0])]
     wv=[0.0]
     XX=meanshift!(M, Pv, hv, wv,Inf,smoothing=0.0)
-    @test atomic_meanshift(M,[0.0,0.0],[0.0,0.0],0.0,0.0).modeval===NaN
+    @test atomic_meanshift(zeros(0,0),[0.0,0.0],[0.0,0.0],0.0,0.0).modeval===NaN
     @test norm(Tuple(Pv[1]).-posmax)<1e-7
 end
 
