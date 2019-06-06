@@ -35,8 +35,8 @@ end
         P,h,w,δ = atomic_meanshift(M, P , h, 0.0,0.0)
     end
     v=Tuple(P).-posmax
-    Pjl=[x for x in P]
-    hjl=[x for x in h]
+    Pjl=[x for x in Tuple(P)]
+    hjl=[x for x in Tuple(h)]
     @test sum(abs.(v))<1e-7
     @test round(Int,atomic_intensity(M, Pjl, hjl).intensity) == 1263.0
 end
