@@ -134,7 +134,7 @@ Performs a single iteration of meanshift over a single particle
 - `smoothing` is a regularization term for density tensors with noise.
 
 """
-    function meanshiftalt!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T; isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T)),smoothing::T=one(T)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    function meanshift!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T; isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T)),smoothing::T=one(T)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         a=@elapsed Threads.@threads for i in eachindex(P)
             cnt=0
             delta=one(T)
