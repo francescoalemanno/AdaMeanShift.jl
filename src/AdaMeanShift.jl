@@ -5,9 +5,6 @@ module AdaMeanShift
     @inline function Kern(x::AbstractVector{fT},h::AbstractVector{fT}) where fT
         max(zero(fT),one(fT) - norm(@inbounds x ./ max.(h,one(fT)))^2)
     end
-    function refldim(x,a)
-         abs( mod(x-1+a-1,2*a-2)-a+1 )+1
-    end
     function circledim(M,c::T,i)::T where T
         mod(c-1,size(M,i))+1
     end
@@ -68,10 +65,16 @@ Performs a single iteration of meanshift over a single particle
                     IW+=imW
                     NW+=$O
                 end
+                if 2*NW<1
+                    return (pnew=p,
+                            hnew=h,
+                            modeval=T(NaN),
+                            delta=$Z)
+                end
                 xsq=xsq ./ W
 
                 c=@. p+(c/W - p)/2
-                return (pnew=K(Base.Cartesian.@ntuple($N,k->circledim(M,c[k],k))),
+                return (pnew=K(Base.Cartesian.@ntuple($N,k->clampdim(M,c[k],k))),
                         hnew=max.(1,$scale .* sqrt.(xsq)),
                         modeval=W/prod(max.(h,$O))*$modescale,
                         delta=norm(c.-p))
