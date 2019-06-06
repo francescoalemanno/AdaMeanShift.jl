@@ -1,5 +1,6 @@
 using AdaMeanShift
 using StaticArrays
+using LinearAlgebra
 using Test
 
 @testset "AdaMeanShift.jl" begin
