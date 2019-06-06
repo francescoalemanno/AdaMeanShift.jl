@@ -8,10 +8,18 @@ using Test
     M=[exp(-(x-7)^2/(2*3)-(y-12)^2/(2*2)) for x in vx, y in vy]
     posmax=Tuple(findmax(M)[2])
     posmax.*1.0
-    P,h,w,δ = atomic_meanshift(M, @SVector([100.0,100.0]) , @SVector([50.0,50.0]), 0.0,0.0) 
+    P,h,w,δ = atomic_meanshift(M, @SVector([100.0,100.0]) , @SVector([50.0,50.0]), 0.0,0.0)
     for i in 1:500
         P,h,w,δ = atomic_meanshift(M, P , h, 0.0,0.0)
     end
     v=Tuple(P).-posmax
-    @test sum(abs.(v))<1e-10
+    @test sum(abs.(v))<1e-7
+    @test round(Int,atomic_intensity(M, P, h).intensity) == 1263.0
+
+    Pv=[@SVector([100.0,100.0])]
+    hv=[@SVector([50.0,50.0])]
+    wv=[0.0]
+    XX=meanshiftalt!(M, Pv, hv, wv,Inf,smoothing=0.0)
+
+    @test norm(Tuple(Pv[1]).-posmax)<1e-7
 end

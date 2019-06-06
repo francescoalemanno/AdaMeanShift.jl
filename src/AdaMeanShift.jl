@@ -39,7 +39,7 @@ Performs a single iteration of meanshift over a single particle
         @assert N==length(h)
         atomic_meanshift(M,SVector{length(p)}(p),SVector{length(h)}(h),isotropy,smoothing)
     end
-    @generated function atomic_meanshift(M::Mty,p::K,h::K,isotropy,smoothing) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    @generated function atomic_meanshift(M::Mty,p::K,h::K,isotropy::T,smoothing::T) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         D=(8//N^2 + 6//N +1)
         scale= sqrt(N * ((2//N + 1)*(4//N + 1)*(6//N + 1))//D)
         invvolume=gamma(N/2+1)*pi^(-N/2)
@@ -134,17 +134,18 @@ Performs a single iteration of meanshift over a single particle
 - `smoothing` is a regularization term for density tensors with noise.
 
 """
-    function meanshift!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T},
-        hmax::T; isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T)),smoothing::T=one(T)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    function meanshiftalt!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T; isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T)),smoothing::T=one(T)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         a=@elapsed Threads.@threads for i in eachindex(P)
             cnt=0
             delta=one(T)
-            while (cnt<maxit)&(delta>rtol)
+            bufcnt=0
+            while (cnt<maxit) & (bufcnt < 10)
                 if norm(h[i])>hmax
                     h[i]=h[i] ./ norm(h[i]) .* hmax
                 end
-                @inbounds P[i],h[i],w[i],delta=atomic_meanshift(M,P[i],h[i],isotropy)
+                @inbounds P[i],h[i],w[i],delta=atomic_meanshift(M,P[i],h[i],isotropy,smoothing)
                 cnt+=1
+                bufcnt=ifelse(delta<rtol,bufcnt+1,0)
             end
         end
         a
