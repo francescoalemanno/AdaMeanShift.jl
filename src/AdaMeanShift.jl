@@ -5,9 +5,6 @@ module AdaMeanShift
     @inline function Kern(x::AbstractVector{fT},h::AbstractVector{fT}) where fT
         max(zero(fT),one(fT) - norm(@inbounds x ./ max.(h,one(fT)))^2)
     end
-    function circledim(M,c::T,i)::T where T
-        mod(c-1,size(M,i))+1
-    end
     function clampdim(M,c::T,i)::T where T
         clamp(c,1,size(M,i))
     end
