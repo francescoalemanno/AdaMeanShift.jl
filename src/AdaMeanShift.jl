@@ -1,7 +1,7 @@
 module AdaMeanShift
 
     using Statistics, LinearAlgebra, SpecialFunctions, StaticArrays
-    export atomic_meanshift, atomic_intensity, meanshift!
+    export atomic_meanshift, atomic_intensity, meanshift!, meanshift_nonadaptive!
     @inline function Kern(x::AbstractVector{fT},h::AbstractVector{fT}) where fT
         max(zero(fT),one(fT) - norm(@inbounds x ./ max.(h,one(fT)))^2)
     end
@@ -120,34 +120,22 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
     end
 
 
-"""
-        meanshift!(M, P, h, w, hmax; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
 
-Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
-
-# Arguments
-- `M` is the density tensor over which particles evolve.
-- `P` is a julia vector of StaticVectors describing all positions.
-- `h` is a julia vector of StaticVectors describing all standard deviations.
-- `w` is a julia vector which will contain the new modes intensity estimates.
-
-# Keyword Arguments
-- `isotropy` is a scalar [0,1] set to 1 for isotropic kernel, < 1 anisotropy along coordinate axis is allowed.
-- `maxit` is a integer for the maximum number of meanshift iterations.
-- `rtol` is the absolute tolerance to declare a particle as converged.
-- `smoothing` is a regularization term for density tensors with noise.
-
-"""
-    function meanshift!(M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T; isotropy::T = T(1/2),maxit::T = T(Inf),rtol::T=sqrt(eps(T)),smoothing::T=one(T)) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    function meanshift_kernel!(::Val{isadaptive} ,M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T, isotropy::T,maxit::T,rtol::T,smoothing::T) where {isadaptive,T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         a=@elapsed Threads.@threads for i in eachindex(P)
             cnt=0
             delta=one(T)
             bufcnt=0
             while (cnt<maxit) & (bufcnt < 10)
-                if norm(h[i])>hmax
+                if norm(h[i])>hmax && isadaptive
                     h[i]=h[i] ./ norm(h[i]) .* hmax
                 end
-                @inbounds P[i],h[i],w[i],delta=atomic_meanshift(M,P[i],h[i],isotropy,smoothing)
+                data=atomic_meanshift(M,P[i],h[i],isotropy,smoothing)
+                if isadaptive
+                    @inbounds P[i],h[i],w[i],delta=data
+                else
+                    @inbounds P[i],_,w[i],delta=data
+                end
                 cnt+=1
                 bufcnt=ifelse(delta<rtol,bufcnt+1,0)
             end
@@ -155,4 +143,31 @@ Performs MeanShift on a swarm of particles over a given density matrix locating 
         a
     end
 
-end # module
+    """
+            meanshift!(M, P, h, w, hmax; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
+
+    Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
+
+    # Arguments
+    - `M` is the density tensor over which particles evolve.
+    - `P` is a julia vector of StaticVectors describing all positions.
+    - `h` is a julia vector of StaticVectors describing all standard deviations.
+    - `w` is a julia vector which will contain the new modes intensity estimates.
+
+    # Keyword Arguments
+    - `isotropy` is a scalar [0,1] set to 1 for isotropic kernel, < 1 anisotropy along coordinate axis is allowed.
+    - `maxit` is a integer for the maximum number of meanshift iterations.
+    - `rtol` is the absolute tolerance to declare a particle as converged.
+    - `smoothing` is a regularization term for density tensors with noise.
+
+
+    See also meanshift_nonadaptive!(M, P, h, w; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
+    """
+    function meanshift!(M,P,h,w, hmax; isotropy = 0.5,maxit=Inf,rtol=1e-8,smoothing=1.0)
+
+        meanshift_kernel!(Val(true),M,P,h,w, promote(hmax, isotropy,maxit,rtol,smoothing)...)
+    end
+    function meanshift_nonadaptive!(M,P,h,w; isotropy = 0.5,maxit=Inf,rtol=1e-8,smoothing=1.0)
+        meanshift_kernel!(Val(false),M,P,h,w, promote(0, isotropy,maxit,rtol,smoothing)...)
+    end
+end

@@ -40,3 +40,18 @@ end
     @test sum(abs.(v))<1e-7
     @test round(Int,atomic_intensity(M, Pjl, hjl).intensity) == 1263.0
 end
+
+
+@testset "Non adaptive routines" begin
+    vx=-20:0.1:20
+    vy=0:0.1:30
+    M=[exp(-(x-7)^2/(2*3)-(y-12)^2/(2*2)) for x in vx, y in vy]
+    posmax=Tuple(findmax(M)[2])
+
+    Pv=[@SVector([100.0,100.0])]
+    hv=[@SVector([50.0,50.0])]
+    wv=[0.0]
+    XX=meanshift_nonadaptive!(M, Pv, hv, wv,smoothing=0.0)
+
+    @test norm(Tuple(Pv[1]).-posmax)<1e-7
+end
