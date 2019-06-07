@@ -143,26 +143,27 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
         a
     end
 
-    """
-            meanshift!(M, P, h, w, hmax; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
+"""
+        meanshift!(M, P, h, w, hmax; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
 
-    Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
+Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
 
-    # Arguments
-    - `M` is the density tensor over which particles evolve.
-    - `P` is a julia vector of StaticVectors describing all positions.
-    - `h` is a julia vector of StaticVectors describing all standard deviations.
-    - `w` is a julia vector which will contain the new modes intensity estimates.
+# Arguments
+- `M` is the density tensor over which particles evolve.
+- `P` is a julia vector of StaticVectors describing all positions.
+- `h` is a julia vector of StaticVectors describing all standard deviations.
+- `w` is a julia vector which will contain the new modes intensity estimates.
 
-    # Keyword Arguments
-    - `isotropy` is a scalar [0,1] set to 1 for isotropic kernel, < 1 anisotropy along coordinate axis is allowed.
-    - `maxit` is a integer for the maximum number of meanshift iterations.
-    - `rtol` is the absolute tolerance to declare a particle as converged.
-    - `smoothing` is a regularization term for density tensors with noise.
+# Keyword Arguments
+- `isotropy` is a scalar [0,1] set to 1 for isotropic kernel, < 1 anisotropy along coordinate axis is allowed.
+- `maxit` is a integer for the maximum number of meanshift iterations.
+- `rtol` is the absolute tolerance to declare a particle as converged.
+- `smoothing` is a regularization term for density tensors with noise.
 
+---
 
-    See also meanshift_nonadaptive!(M, P, h, w; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
-    """
+See also `meanshift_nonadaptive!(M, P, h, w; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)`
+"""
     function meanshift!(M,P,h,w, hmax; isotropy = 0.5,maxit=Inf,rtol=1e-8,smoothing=1.0)
 
         meanshift_kernel!(Val(true),M,P,h,w, promote(hmax, isotropy,maxit,rtol,smoothing)...)

@@ -2,13 +2,12 @@ using Documenter, AdaMeanShift
 
 makedocs(;
     modules=[AdaMeanShift],
-    format=Documenter.HTML(),
+    format = Documenter.HTML(assets=["assets/invenia.css"]),
     pages=[
-        "Home" => "index.md",
+        "API" => "index.md",
     ],
     sitename="AdaMeanShift.jl",
     authors="Francesco Alemanno",
-    assets=String[],
 )
 
 deploydocs(;
