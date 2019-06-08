@@ -140,19 +140,26 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
                 bufcnt=ifelse(delta<rtol,bufcnt+1,0)
             end
         end
+        isadaptive && Threads.@threads for i in eachindex(P)
+                if norm(h[i])>hmax
+                    h[i]=h[i] ./ norm(h[i]) .* hmax
+                end
+        end
         a
     end
 
 """
         meanshift!(M, P, h, w, hmax; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)
+        meanshift_nonadaptive!(M, P, h, w; maxit=∞, rtol=√ϵ, smoothing=1)
 
-Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale.
+Performs MeanShift on a swarm of particles over a given density matrix locating all modes and their scale. The non adaptive method disables updating of the `h` vectors, and thus depends on fewer parameters.
 
 # Arguments
 - `M` is the density tensor over which particles evolve.
 - `P` is a julia vector of StaticVectors describing all positions.
 - `h` is a julia vector of StaticVectors describing all standard deviations.
 - `w` is a julia vector which will contain the new modes intensity estimates.
+- `hmax` is a real number for the maximum norm allowed to the `h` vectors.
 
 # Keyword Arguments
 - `isotropy` is a scalar [0,1] set to 1 for isotropic kernel, < 1 anisotropy along coordinate axis is allowed.
@@ -160,15 +167,11 @@ Performs MeanShift on a swarm of particles over a given density matrix locating 
 - `rtol` is the absolute tolerance to declare a particle as converged.
 - `smoothing` is a regularization term for density tensors with noise.
 
----
-
-See also `meanshift_nonadaptive!(M, P, h, w; isotropy=½, maxit=∞, rtol=√ϵ, smoothing=1)`
 """
     function meanshift!(M,P,h,w, hmax; isotropy = 0.5,maxit=Inf,rtol=1e-8,smoothing=1.0)
-
         meanshift_kernel!(Val(true),M,P,h,w, promote(hmax, isotropy,maxit,rtol,smoothing)...)
     end
-    function meanshift_nonadaptive!(M,P,h,w; isotropy = 0.5,maxit=Inf,rtol=1e-8,smoothing=1.0)
-        meanshift_kernel!(Val(false),M,P,h,w, promote(0, isotropy,maxit,rtol,smoothing)...)
+    function meanshift_nonadaptive!(M,P,h,w; maxit=Inf,rtol=1e-8,smoothing=1.0)
+        meanshift_kernel!(Val(false),M,P,h,w, promote(0, 0,maxit,rtol,smoothing)...)
     end
 end
