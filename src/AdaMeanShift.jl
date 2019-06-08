@@ -82,14 +82,14 @@ Performs a single iteration of meanshift over a single particle
     end
 
 """
-        atomic_intensity(M::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+        atomic_intensity(M,p,h) -> NamedTuple(intensity,numpoints,ndims)
 
 Calculates the integrated intensity on the density tensor `M` over a ellipsoidal region caracterized by `p` region center, `h` semiaxis
 
 # Arguments
-- `M` density tensor
-- `p` region center
-- `h` semiaxis lengths
+- `M` density tensor (e.g. matrix N*N)
+- `p` region center (e.g. 2D vector)
+- `h` semiaxis lengths (e.g. 2D vector)
 
 Note that both `p`,`h` should be of type Vector or StaticVector with the same length.
 """
