@@ -150,6 +150,7 @@ using ProgressMeter
                     h[i]=h[i] ./ norm(h[i]) .* hmax
                 end
         end
+        update!(pr, length(P))
         a
     end
 
