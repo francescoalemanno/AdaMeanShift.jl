@@ -124,6 +124,7 @@ using ProgressMeter
     function meanshift_kernel!(::Val{isadaptive} ,M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T, isotropy::T,maxit::T,rtol::T,smoothing::T) where {isadaptive,T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         pr = Progress(length(P));
         update!(pr,0)
+        l = Threads.SpinLock()
         jj = Threads.Atomic{Int}(0)
         a=@elapsed Threads.@threads for i in eachindex(P)
             cnt=0
