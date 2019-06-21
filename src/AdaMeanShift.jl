@@ -125,7 +125,7 @@ using ProgressMeter
         pr = Progress(length(P));
         update!(pr,1)
         jj = Threads.Atomic{Int}(0)
-        sp=Threads.SpinLock()
+        sp=Threads.Mutex()
         a=@elapsed Threads.@threads for i in eachindex(P)
             cnt=0
             delta=one(T)
