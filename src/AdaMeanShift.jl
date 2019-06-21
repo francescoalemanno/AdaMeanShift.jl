@@ -146,7 +146,9 @@ using ProgressMeter
             Threads.lock(sl) do
                 jj+=1
                 update!(pr, jj)
+                Threads.unlock(sl)
             end
+
         end
         isadaptive && Threads.@threads for i in eachindex(P)
                 if norm(h[i])>hmax

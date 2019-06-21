@@ -16,9 +16,9 @@ using Test
     @test sum(abs.(v))<1e-7
     @test round(Int,atomic_intensity(M, P, h).intensity) == 1263.0
 
-    Pv=[@SVector([100.0,100.0]) for rep=1:20000]
-    hv=[@SVector([50.0,50.0]) for rep=1:20000]
-    wv=[0.0 for rep=1:20000]
+    Pv=[@SVector([100.0,100.0]) for rep=1:200]
+    hv=[@SVector([50.0,50.0]) for rep=1:200]
+    wv=[0.0 for rep=1:200]
     XX=meanshift!(M, Pv, hv, wv,Inf,smoothing=0.0,isotropy=0.0)
     @test atomic_meanshift(zeros(0,0),[0.0,0.0],[0.0,0.0],0.0,0.0).modeval===NaN
     @test norm(Tuple(Pv[1]).-posmax)<1e-7
