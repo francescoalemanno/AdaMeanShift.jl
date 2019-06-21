@@ -125,6 +125,7 @@ using ProgressMeter
         pr = Progress(length(P));
         update!(pr,0)
         jj = Threads.Atomic{Int}(0)
+        sl=Threads.SpinLock()
         a=@elapsed Threads.@threads for i in eachindex(P)
             cnt=0
             delta=one(T)
@@ -143,7 +144,10 @@ using ProgressMeter
                 bufcnt=ifelse(delta<rtol,bufcnt+1,0)
             end
             Threads.atomic_add!(jj, 1)
-            Threads.threadid() == 1 && update!(pr, jj[])
+            if Threads.trylock(sl)
+                update!(pr, jj[])
+                Threads.unlock(sl)
+            end
         end
         isadaptive && Threads.@threads for i in eachindex(P)
                 if norm(h[i])>hmax
