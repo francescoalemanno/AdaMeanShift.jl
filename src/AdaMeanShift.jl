@@ -149,6 +149,7 @@ using ProgressMeter
                 println(i,"  ",Threads.threadid())
             end
         end
+        println("FINISH threads")
         isadaptive && Threads.@threads for i in eachindex(P)
                 if norm(h[i])>hmax
                     h[i]=h[i] ./ norm(h[i]) .* hmax
