@@ -146,6 +146,7 @@ using ProgressMeter
             Threads.atomic_add!(jj, 1)
             Threads.trylock(sp) do
                 update!(pr, jj[])
+                println(i,"  ",Threads.threadid())
             end
         end
         isadaptive && Threads.@threads for i in eachindex(P)
