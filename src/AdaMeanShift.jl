@@ -141,7 +141,7 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
         @assert T==eltype(h)
         atomic_ratio(Mnum,Mden,SVector{length(p)}(p),SVector{length(h)}(h))
     end
-
+  
     @generated function atomic_ratio(Mnum::Mty,Mden::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         Z=zero(T)
         O=one(T)
@@ -149,6 +149,8 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
             @inbounds begin
                 NP2=NP=IP=IP2=$Z
                 R=zeros(0)
+                maxnum=maximum(Mnum)
+                maxden=maximum(Mden)
                 Base.Cartesian.@nexprs $N i -> R_i = makerange(Mnum,p,h,i)
                 Base.Cartesian.@nloops $N i i->R_i begin
                     cpnum=$K(Base.Cartesian.@ntuple($N,k->i_k))
@@ -160,7 +162,7 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
                         norm((p.-cpden)./h) > 1 && continue;
                         Iden=Base.Cartesian.@nref($N,Mden,k->j_k)
                         Iden<=0 && continue;
-                        wh=Inum*Iden
+                        wh=(Inum/maxnum)^2*(Iden/maxden)^2   # wh=Inum*Iden
                         X=log(Inum/Iden)
                         IP+=X*wh
                         IP2+=X^2*wh
@@ -176,7 +178,6 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
             end
         end
     end
-
 
     function meanshift_kernel!(::Val{isadaptive} ,M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T, isotropy::T,maxit::T,rtol::T,smoothing::T) where {isadaptive,T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         pr = Progress(length(P));
