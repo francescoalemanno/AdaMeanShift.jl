@@ -58,3 +58,11 @@ end
 
     @test norm(Tuple(Pv[1]).-posmax)<1e-7
 end
+
+
+@testset "Ratio Calculation" begin
+    A=[exp(-(x-4)^2 -(y-3)^2) for x in 0:0.1:8, y in 0:0.1:8]
+    A[40,40]=-1.0
+    @test prod(&,atomic_ratio(A,A,[40.99999999608069, 30.9999999998036],
+            [13.102949390292464, 13.10294939029246]).pointest .≈ (1.0000000000000042, 0.0015029349410054437))
+end
