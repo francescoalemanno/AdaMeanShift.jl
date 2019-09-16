@@ -121,6 +121,63 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
 
 using ProgressMeter
 
+"""
+        atomic_ratio(M,p,h) -> (pointest=(ratio,stddev),ndims=N)
+
+Calculates the pixel pair-wise ratio on for density tensor `Mnum/Mden` over a ellipsoidal region caracterized by `p` region center, `h` semiaxis
+
+# Arguments
+- `Mnum` density tensor (e.g. matrix N*N)
+- `Mden` density tensor (e.g. matrix N*N)
+- `p` region center (e.g. 2D vector)
+- `h` semiaxis lengths (e.g. 2D vector)
+
+Note that both `p`,`h` should be of type Vector or StaticVector with the same length.
+"""
+    function atomic_ratio(Mnum,Mden,p,h)
+        N=length(p)
+        T=eltype(p)
+        @assert N==length(h)
+        @assert T==eltype(h)
+        atomic_ratio(Mnum,Mden,SVector{length(p)}(p),SVector{length(h)}(h))
+    end
+
+    @generated function atomic_ratio(Mnum::Mty,Mden::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+        Z=zero(T)
+        O=one(T)
+        quote
+            @inbounds begin
+                NP2=NP=IP=IP2=$Z
+                R=zeros(0)
+                Base.Cartesian.@nexprs $N i -> R_i = makerange(Mnum,p,h,i)
+                Base.Cartesian.@nloops $N i i->R_i begin
+                    cpnum=$K(Base.Cartesian.@ntuple($N,k->i_k))
+                    norm((p.-cpnum)./h) > 1 && continue;
+                    Inum=Base.Cartesian.@nref($N,Mnum,k->i_k)
+                    Inum<=0 && continue;
+                    Base.Cartesian.@nloops $N j j->R_j begin
+                        cpden=$K(Base.Cartesian.@ntuple($N,k->j_k))
+                        norm((p.-cpden)./h) > 1 && continue;
+                        Iden=Base.Cartesian.@nref($N,Mden,k->j_k)
+                        Iden<=0 && continue;
+                        wh=Inum*Iden
+                        X=log(Inum/Iden)
+                        IP+=X*wh
+                        IP2+=X^2*wh
+                        NP+=wh
+                        NP2+=wh^2
+                    end
+                end
+                IP/=NP
+                IP2/=NP
+                XV=exp(IP)
+                XD=XV*sqrt(IP2-IP^2)*sqrt(NP2)/NP
+                return (pointest=(XV,XD),ndims=N)
+            end
+        end
+    end
+
+
     function meanshift_kernel!(::Val{isadaptive} ,M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T, isotropy::T,maxit::T,rtol::T,smoothing::T) where {isadaptive,T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         pr = Progress(length(P));
         update!(pr,0)
