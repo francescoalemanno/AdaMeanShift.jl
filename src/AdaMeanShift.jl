@@ -1,7 +1,7 @@
 module AdaMeanShift
 
     using Statistics, LinearAlgebra, SpecialFunctions, StaticArrays
-    export atomic_meanshift, atomic_intensity, meanshift!, meanshift_nonadaptive!
+    export atomic_meanshift, atomic_intensity, atomic_ratio, meanshift!, meanshift_nonadaptive!
     @inline function Kern(x::AbstractVector{fT},h::AbstractVector{fT}) where fT
         max(zero(fT),one(fT) - norm(@inbounds x ./ max.(h,one(fT)))^2)
     end
@@ -122,7 +122,7 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
 using ProgressMeter
 
 """
-        atomic_ratio(M,p,h) -> (pointest=(ratio,stddev),ndims=N)
+        atomic_ratio(Mnum,Mden,p,h) -> (pointest=(ratio,stddev),ndims=N)
 
 Calculates the pixel pair-wise ratio on for density tensor `Mnum/Mden` over a ellipsoidal region caracterized by `p` region center, `h` semiaxis
 
