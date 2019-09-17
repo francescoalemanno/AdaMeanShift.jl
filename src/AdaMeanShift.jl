@@ -147,7 +147,7 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
         atomic_ratio(Mnum,Mden,SVector{length(p)}(p),SVector{length(h)}(h),power)
     end
   
-    @generated function atomic_ratio(Mnum::Mty,Mden::Mty,p::K,h::K,power::Int) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    @generated function atomic_ratio(Mnum::Mty,Mden::Mty,p::K,h::K,power::NUM) where {NUM<:Number,T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         Z=zero(T)
         O=one(T)
         quote
