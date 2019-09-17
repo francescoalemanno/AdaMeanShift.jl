@@ -134,15 +134,20 @@ Calculates the pixel pair-wise ratio on for density tensor `Mnum/Mden` over a el
 
 Note that both `p`,`h` should be of type Vector or StaticVector with the same length.
 """
+   
     function atomic_ratio(Mnum,Mden,p,h)
+        atomic_ratio(Mnum,Mden,p,h,2)
+    end 
+
+    function atomic_ratio(Mnum,Mden,p,h,power)
         N=length(p)
         T=eltype(p)
         @assert N==length(h)
         @assert T==eltype(h)
-        atomic_ratio(Mnum,Mden,SVector{length(p)}(p),SVector{length(h)}(h))
+        atomic_ratio(Mnum,Mden,SVector{length(p)}(p),SVector{length(h)}(h),power)
     end
   
-    @generated function atomic_ratio(Mnum::Mty,Mden::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    @generated function atomic_ratio(Mnum::Mty,Mden::Mty,p::K,h::K,power::Int) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         Z=zero(T)
         O=one(T)
         quote
@@ -162,7 +167,7 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
                         norm((p.-cpden)./h) > 1 && continue;
                         Iden=Base.Cartesian.@nref($N,Mden,k->j_k)
                         Iden<=0 && continue;
-                        wh=(Inum/maxnum)^2*(Iden/maxden)^2   # wh=Inum*Iden
+                        wh=(Inum/maxnum)^power*(Iden/maxden)^power   # pow=2 true est, pow=1 seems good too
                         X=log(Inum/Iden)
                         IP+=X*wh
                         IP2+=X^2*wh
