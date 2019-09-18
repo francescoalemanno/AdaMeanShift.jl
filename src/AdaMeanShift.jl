@@ -150,7 +150,7 @@ using ProgressMeter
                     NP+=wh
                     NP2+=wh^2
                 end
-                @show IP,IP2,NP,NP2
+                #@show IP,IP2,NP,NP2
                 IP/=NP
                 IP2/=NP
                 XV=exp(IP)
