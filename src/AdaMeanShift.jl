@@ -121,21 +121,7 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
 
 using ProgressMeter
 
-"""
-        atomic_ratio(Mnum,Mden,p,h) -> (pointest=(ratio,stddev),ndims=N)
 
-Calculates the pixel pair-wise ratio on for density tensor `Mnum/Mden` over a ellipsoidal region caracterized by `p` region center, `h` semiaxis
-
-# Arguments
-- `Mnum` density tensor (e.g. matrix N*N)
-- `Mden` density tensor (e.g. matrix N*N)
-- `p` region center (e.g. 2D vector)
-- `h` semiaxis lengths (e.g. 2D vector)
-
-Note that both `p`,`h` should be of type Vector or StaticVector with the same length.
-"""
-   
- 
     function atomic_expmeanlog(M,p,h)
         N=length(p)
         T=eltype(p)
@@ -174,6 +160,21 @@ Note that both `p`,`h` should be of type Vector or StaticVector with the same le
         end
     end
 
+
+
+"""
+        atomic_ratio(Mnum,Mden,p,h) -> (pointest=(ratio,stddev),ndims=N)
+
+Calculates the pixel pair-wise ratio on for density tensor `Mnum/Mden` over a ellipsoidal region caracterized by `p` region center, `h` semiaxis
+
+# Arguments
+- `Mnum` density tensor (e.g. matrix N*N)
+- `Mden` density tensor (e.g. matrix N*N)
+- `p` region center (e.g. 2D vector)
+- `h` semiaxis lengths (e.g. 2D vector)
+
+Note that both `p`,`h` should be of type Vector or StaticVector with the same length.
+"""
     function atomic_ratio(Mnum,Mden,p,h)
         n,σn=atomic_expmeanlog(Mnum,p,h)
         d,σd=atomic_expmeanlog(Mden,p,h)
