@@ -136,7 +136,6 @@ using ProgressMeter
         quote
             @inbounds begin
                 NP2=NP=IP=IP2=$Z
-                R=zeros(0)
                 maxnum=maximum(M)
                 Base.Cartesian.@nexprs $N i -> R_i = makerange(M,p,h,i)
                 Base.Cartesian.@nloops $N i i->R_i begin
@@ -151,10 +150,11 @@ using ProgressMeter
                     NP+=wh
                     NP2+=wh^2
                 end
+                @show IP,IP2,NP,NP2
                 IP/=NP
                 IP2/=NP
                 XV=exp(IP)
-                XD=XV*sqrt(IP2-IP^2)*sqrt(NP2)/NP
+                XD=XV*sqrt(max(IP2-IP^2,$Z))*sqrt(NP2)/NP
                 return (XV,XD)
             end
         end
