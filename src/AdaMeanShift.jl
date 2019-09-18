@@ -135,53 +135,49 @@ Calculates the pixel pair-wise ratio on for density tensor `Mnum/Mden` over a el
 Note that both `p`,`h` should be of type Vector or StaticVector with the same length.
 """
    
-    function atomic_ratio(Mnum,Mden,p,h)
-        atomic_ratio(Mnum,Mden,p,h,2)
-    end 
-
-    function atomic_ratio(Mnum,Mden,p,h,power)
+ 
+    function atomic_expmeanlog(M,p,h)
         N=length(p)
         T=eltype(p)
         @assert N==length(h)
         @assert T==eltype(h)
-        atomic_ratio(Mnum,Mden,SVector{length(p)}(p),SVector{length(h)}(h),power)
+        atomic_expmeanlog(M,SVector{length(p)}(p),SVector{length(h)}(h))
     end
   
-    @generated function atomic_ratio(Mnum::Mty,Mden::Mty,p::K,h::K,power::NUM) where {NUM<:Number,T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
+    @generated function atomic_expmeanlog(M::Mty,p::K,h::K) where {T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
         Z=zero(T)
         O=one(T)
         quote
             @inbounds begin
                 NP2=NP=IP=IP2=$Z
                 R=zeros(0)
-                maxnum=maximum(Mnum)
-                maxden=maximum(Mden)
-                Base.Cartesian.@nexprs $N i -> R_i = makerange(Mnum,p,h,i)
+                maxnum=maximum(M)
+                Base.Cartesian.@nexprs $N i -> R_i = makerange(M,p,h,i)
                 Base.Cartesian.@nloops $N i i->R_i begin
-                    cpnum=$K(Base.Cartesian.@ntuple($N,k->i_k))
-                    norm((p.-cpnum)./h) > 1 && continue;
-                    Inum=Base.Cartesian.@nref($N,Mnum,k->i_k)
-                    Inum<=0 && continue;
-                    Base.Cartesian.@nloops $N j j->R_j begin
-                        cpden=$K(Base.Cartesian.@ntuple($N,k->j_k))
-                        norm((p.-cpden)./h) > 1 && continue;
-                        Iden=Base.Cartesian.@nref($N,Mden,k->j_k)
-                        Iden<=0 && continue;
-                        wh=(Inum/maxnum)^power*(Iden/maxden)^power   # pow=2 true est, pow=1 seems good too
-                        X=log(Inum/Iden)
-                        IP+=X*wh
-                        IP2+=X^2*wh
-                        NP+=wh
-                        NP2+=wh^2
-                    end
+                    cp=$K(Base.Cartesian.@ntuple($N,k->i_k))
+                    norm((p.-cp)./h)>1 && continue;
+                    I=Base.Cartesian.@nref($N,M,k->i_k)
+                    I<=0 && continue;
+                    wh=(I/maxnum)^2   # pow=2 true est, pow=1 seems good too
+                    X=log(I)
+                    IP+=X*wh
+                    IP2+=X^2*wh
+                    NP+=wh
+                    NP2+=wh^2
                 end
                 IP/=NP
                 IP2/=NP
                 XV=exp(IP)
                 XD=XV*sqrt(IP2-IP^2)*sqrt(NP2)/NP
-                return (pointest=(XV,XD),ndims=N)
+                return (XV,XD)
             end
         end
+    end
+
+    function atomic_ratio(Mnum,Mden,p,h)
+        n,σn=atomic_expmeanlog(Mnum,p,h)
+        d,σd=atomic_expmeanlog(Mden,p,h)
+        (n/d, sqrt(σn^2+(σd*n/d)^2)/d)
     end
 
     function meanshift_kernel!(::Val{isadaptive} ,M::Mty,P::AbstractVector{K},h::AbstractVector{K},w::AbstractVector{T}, hmax::T, isotropy::T,maxit::T,rtol::T,smoothing::T) where {isadaptive,T,N,K<:StaticArray,Mty<:AbstractArray{T,N}}
