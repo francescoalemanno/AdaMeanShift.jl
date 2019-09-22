@@ -1,7 +1,7 @@
 module AdaMeanShift
 
     using Statistics, LinearAlgebra, SpecialFunctions, StaticArrays
-    export atomic_meanshift, atomic_intensity, atomic_ratio, meanshift!, meanshift_nonadaptive!
+    export atomic_meanshift, atomic_intensity, atomic_ratio, meanshift!, meanshift_nonadaptive!, extract_circ_region
     @inline function Kern(x::AbstractVector{fT},h::AbstractVector{fT}) where fT
         max(zero(fT),one(fT) - norm(@inbounds x ./ max.(h,one(fT)))^2)
     end
@@ -239,5 +239,22 @@ Performs MeanShift on a swarm of particles over a given density matrix locating 
     end
     function meanshift_nonadaptive!(M,P,h,w; maxit=Inf,rtol=1e-8,smoothing=1.0)
         meanshift_kernel!(Val(false),M,P,h,w, promote(0, 0,maxit,rtol,smoothing)...)
+    end
+"""
+    extract_circ_region(M,p,h) -> M',p',h
+Extracts a spherical section with center "p" and axes "h" from a multidimensional array and returns the region with the new center coordinates.
+"""
+    function extract_circ_region(M::Mty,p::Vty,h::Vty) where {T,N,Mty<:AbstractArray{T,N},Vty<:AbstractVector{T}}
+        rg=[makerange(M,p,h,i) for i in 1:N]
+        redM=collect(view(M,rg...))
+        startind=minimum.(rg)
+        redp=p.-startind.+1
+        redh=h
+        for i in CartesianIndices(redM)
+            if norm((Tuple(i).-redp)./redh) > 1
+                redM[i] =0.0
+            end
+        end
+        redM,redp,h
     end
 end
