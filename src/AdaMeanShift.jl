@@ -256,7 +256,6 @@ Extracts a rectangular section with center "p" and axes "h" from a multidimensio
 Extracts a spherical section with center "p" and axes "h" from a multidimensional array and returns the region with the new center coordinates.
 """
     function extract_circ_region(M::Mty,p::Vty,h::Vty) where {T,N,Mty<:AbstractArray{T,N},Vty<:AbstractVector{T}}
-        rg=[makerange(M,p,h,i) for i in 1:N]
         redM,redp,redh=extract_region(M,p,h)
         for i in CartesianIndices(redM)
             if norm((Tuple(i).-redp)./redh) > 1
